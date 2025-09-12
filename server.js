@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const fs = require('fs'); // 引入檔案系統模組
+
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
@@ -9,11 +9,12 @@ const port = 3000;
 // --- Load Knowledge Base ---
 let knowledgeBase;
 try {
-  const rawData = fs.readFileSync('knowledge_base.json', 'utf8');
-  knowledgeBase = JSON.parse(rawData);
+  // Use require to load the JSON file directly.
+  // This allows bundlers like Vercel to include the file in the deployment.
+  knowledgeBase = require('./knowledge_base.json');
   console.log('Knowledge base loaded successfully.');
 } catch (error) {
-  console.error('Error reading or parsing knowledge_base.json:', error);
+  console.error('Error loading knowledge_base.json with require():', error);
   // If the knowledge base is critical, you might want to exit
   process.exit(1);
 }
