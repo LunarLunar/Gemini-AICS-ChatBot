@@ -1,0 +1,5 @@
+# Ignore Node.js dependencies
+node_modules/
+
+# Ignore temporary scripts
+read_codex.py
