@@ -1,12 +1,8 @@
-set GEMINI_API_KEY=AIzaSyC9JdKmQlnP5Mz2gZvWOdUqeFGUW8qpxYE
-node server.js
-
-
 
 ----------------------------------------------
 
 
-https://vercel.com/new?onboarding=true
+https:/
 
 
   第一步：在 GitHub 網站上建立新倉庫
