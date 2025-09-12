@@ -55,3 +55,27 @@
 **後續步驟：**
 *   在 GitHub 上建立新倉庫並推送程式碼。
 *   在 Vercel 網站上匯入該倉庫，設定環境變數 `GEMINI_API_KEY`，並執行部署。
+
+### 開發日誌：2025年9月12日 (續)
+
+**目標：** 修正 Vercel 部署錯誤，並深入理解 Git 工作流程。
+
+**進度與成果：**
+
+1.  **Vercel 部署偵錯：**
+    *   成功將專案部署至 Vercel，但遇到 `500: INTERNAL_SERVER_ERROR` (FUNCTION_INVOCATION_FAILED)。
+    *   **根本原因分析：** 透過 Vercel 的日誌 (Logs)，定位到錯誤為 `ENOENT: no such file or directory, open 'knowledge_base.json'`。確認問題是 Vercel 在打包時，未將 `server.js` 動態讀取的 `knowledge_base.json` 包含進去。
+    *   **解決方案：** 修改 `server.js`，將讀取方式從 `fs.readFileSync()` 改為 `require('./knowledge_base.json')`。這讓 Vercel 的打包工具能靜態分析出檔案依賴，進而將其正確打包。
+
+2.  **Git 工作流程問題解決：**
+    *   在 `git push` 時遇到 `Updates were rejected` 錯誤，原因是遠端倉庫 (GitHub) 的歷史紀錄比本地新 (因在網頁上直接操作)。
+    *   透過 `git pull origin main` 指令，先將遠端變更同步至本地，再 `git push`，成功解決問題。
+
+3.  **Git 核心概念討論與學習：**
+    *   深入探討了 `git pull` 在本地與遠端同時修改同一檔案時的三種情境：自動合併、合併衝突、因未提交而拒絕。
+    *   釐清了 Git 的 `diff` 演算法不依賴「行號」，而是依賴「內容上下文」的區塊 (chunk) 來定位變更，因此能應對單純的增減空行或程式碼位移。
+    *   探討了在「上下文」被惡意或意外複製的極端情況下，Git 會因無法解決「歧義」而觸發「合併衝突」，把控制權交還給使用者，以此作為確保程式碼安全的最終防線。
+
+**目前狀態：**
+*   AI 客服機器人已在 Vercel 上成功部署並可公開訪問。
+*   對於 Git 的核心協作流程有了更深入和準確的理解。

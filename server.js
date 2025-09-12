@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-
+const fs = require('fs'); // 引入檔案系統模組
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
@@ -42,7 +42,20 @@ app.post('/api/chat', async (req, res) => {
     const userMessageLower = userMessage.toLowerCase(); // For case-insensitive matching
     console.log('Received message from client:', userMessage);
 
-    // 1. Check for keywords in the knowledge base
+    // 1. Check for "leave a message" intent
+    const leaveMessageKeywords = ['留言', '轉告', '專人'];
+    if (leaveMessageKeywords.some(keyword => userMessageLower.includes(keyword))) {
+      const timestamp = new Date().toISOString();
+      const logEntry = `[${timestamp}] Customer Message: "${userMessage}"\n`;
+
+      // Asynchronously append to the log file
+      await fs.promises.appendFile('customer_messages.log', logEntry);
+
+      console.log('Message logged to customer_messages.log');
+      return res.json({ reply: '好的，您的留言我們已經記錄下來，客服人員將會盡快為您處理。' });
+    }
+
+    // 2. Check for keywords in the knowledge base
     for (const keyword in knowledgeBase.keywords) {
       if (userMessageLower.includes(keyword)) {
         const botResponse = knowledgeBase.keywords[keyword];
@@ -52,7 +65,7 @@ app.post('/api/chat', async (req, res) => {
       }
     }
 
-    // 2. If no keyword matches, send to Gemini AI with a system prompt
+    // 3. If no keyword matches, send to Gemini AI with a system prompt
     console.log('No keyword rule matched, sending to Gemini AI...');
     const prompt = `${knowledgeBase.system_prompt}\n\n顧客問題：${userMessage}`;
 
