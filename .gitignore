@@ -9,3 +9,4 @@ DEV_LOG.md
 
 # Ignore application logs
 *.log
+ErrorLog.txt

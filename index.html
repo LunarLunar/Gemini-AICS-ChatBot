@@ -7,13 +7,82 @@
   body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; margin: 0; }
   #chatContainer { display: flex; flex-direction: column; height: calc(100vh - 40px); max-width: 700px; margin: auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
   #chatBox { flex-grow: 1; padding: 15px; overflow-y: auto; }
-  .message { padding: 8px 12px; margin: 8px 0; border-radius: 8px; max-width: 80%; line-break: anywhere; }
+  .message { padding: 8px 12px; margin: 8px 0; border-radius: 8px; max-width: 80%; line-break: anywhere; white-space: pre-wrap; }
   .user { background: #d1e7ff; text-align: left; align-self: flex-end; margin-left: 20%; }
   .bot { background: #e2ffe2; text-align: left; align-self: flex-start; margin-right: 20%; }
   #inputContainer { display: flex; padding: 15px; border-top: 1px solid #ddd; }
   #inputBox { flex-grow: 1; padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
   #sendBtn { width: 70px; padding: 8px; margin-left: 10px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer; }
   #sendBtn:hover { background-color: #0056b3; }
+
+/* Modal styles */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 100; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 500px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.close-button {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#messageForm {
+  display: flex;
+  flex-direction: column;
+}
+
+#messageForm label {
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+#messageForm input,
+#messageForm textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#messageForm button {
+  margin-top: 20px;
+  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#messageForm button:hover {
+  background-color: #0056b3;
+}
 </style>
 </head>
 <body>
@@ -26,9 +95,32 @@
   </div>
 </div>
 
+<div id="messageModal" class="modal">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <h2>留言給客服</h2>
+    <form id="messageForm">
+      <label for="name">您的姓名：</label>
+      <input type="text" id="name" name="name" required>
+      <label for="phone">您的電話：</label>
+      <input type="tel" id="phone" name="phone">
+      <label for="message">留言內容：</label>
+      <textarea id="message" name="message" rows="4" required></textarea>
+      <button type="submit">送出留言</button>
+    </form>
+  </div>
+</div>
+
 <script>
 // ====================================
-// 🔧 功能函式
+// 🔧 DOM & Modal Elements
+// ====================================
+const modal = document.getElementById("messageModal");
+const messageForm = document.getElementById("messageForm");
+const closeButton = document.querySelector(".close-button");
+
+// ====================================
+// 🔧 功能函式 (Functions)
 // ====================================
 
 // 新增訊息到 chatBox
@@ -42,20 +134,50 @@ function addMessage(text, type = "bot") {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// 發送訊息
+// 打開/關閉 Modal
+function openModal() {
+  modal.style.display = "block";
+}
+function closeModal() {
+  modal.style.display = "none";
+  messageForm.reset(); // Clear the form
+}
+
+// 處理 Modal 表單提交
+async function handleFormSubmit(event) {
+  event.preventDefault();
+  const name = event.target.name.value;
+  const phone = event.target.phone.value;
+  const message = event.target.message.value;
+
+  // 在聊天室顯示正在送出的資訊
+  addMessage(`--- 正在為您送出留言 ---\n姓名: ${name}\n電話: ${phone}\n內容: ${message}`, "user");
+  closeModal();
+
+  try {
+    const response = await fetch('/api/save-message', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone, message })
+    });
+    const data = await response.json();
+    addMessage(data.reply, "bot"); // 顯示後端傳回的成功/失敗訊息
+  } catch (error) {
+    console.error('Error submitting message form:', error);
+    addMessage("送出留言時發生網路錯誤。", "bot");
+  }
+}
+
+// 發送聊天訊息
 function sendMessage() {
   const inputBox = document.getElementById("inputBox");
   const userText = inputBox.value.trim();
   if (!userText) return;
 
-  // 顯示使用者訊息
   addMessage(userText, "user");
   inputBox.value = "";
-
-  // 顯示 "思考中..." 的提示
   addMessage("...", "bot");
 
-  // 呼叫後端 API
   fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -63,17 +185,21 @@ function sendMessage() {
   })
   .then(res => res.json())
   .then(data => {
-    // 移除 "思考中..." 的提示
     const thinkingMessage = document.querySelector('#chatBox .message:last-child');
     if (thinkingMessage && thinkingMessage.innerText === '...') {
         thinkingMessage.remove();
     }
-    // 顯示從後端收到的回覆
-    addMessage(data.reply, "bot");
+
+    // *** NEW LOGIC: Check for action from backend ***
+    if (data.action === 'show_modal') {
+      if(data.reply) addMessage(data.reply, "bot");
+      openModal();
+    } else {
+      addMessage(data.reply, "bot");
+    }
   })
   .catch(error => {
     console.error('Error:', error);
-    // 移除 "思考中..." 的提示
     const thinkingMessage = document.querySelector('#chatBox .message:last-child');
     if (thinkingMessage && thinkingMessage.innerText === '...') {
         thinkingMessage.remove();
@@ -83,16 +209,26 @@ function sendMessage() {
 }
 
 // ====================================
-// 📌 事件綁定
+// 📌 事件綁定 (Event Listeners)
 // ====================================
 document.getElementById("sendBtn").addEventListener("click", sendMessage);
 
 document.getElementById("inputBox").addEventListener("keydown", function(e) {
   if (e.key === "Enter") {
-    e.preventDefault(); // 防止 Enter 換行
+    e.preventDefault();
     sendMessage();
   }
 });
+
+// Modal events
+closeButton.addEventListener("click", closeModal);
+window.addEventListener("click", function(event) {
+  if (event.target == modal) {
+    closeModal();
+  }
+});
+messageForm.addEventListener("submit", handleFormSubmit);
+
 
 // 歡迎訊息
 window.onload = () => {

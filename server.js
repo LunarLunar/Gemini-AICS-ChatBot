@@ -45,14 +45,9 @@ app.post('/api/chat', async (req, res) => {
     // 1. Check for "leave a message" intent
     const leaveMessageKeywords = ['留言', '轉告', '專人'];
     if (leaveMessageKeywords.some(keyword => userMessageLower.includes(keyword))) {
-      const timestamp = new Date().toISOString();
-      const logEntry = `[${timestamp}] Customer Message: "${userMessage}"\n`;
-
-      // Asynchronously append to the log file
-      await fs.promises.appendFile('customer_messages.log', logEntry);
-
-      console.log('Message logged to customer_messages.log');
-      return res.json({ reply: '好的，您的留言我們已經記錄下來，客服人員將會盡快為您處理。' });
+      console.log('"Leave message" intent detected. Instructing frontend to show modal.');
+      // Instead of logging here, tell the frontend to open the modal
+      return res.json({ action: 'show_modal', reply: '好的，請您填寫以下的留言表單。' });
     }
 
     // 2. Check for keywords in the knowledge base
@@ -79,6 +74,28 @@ app.post('/api/chat', async (req, res) => {
   } catch (error) {
     console.error("Error in /api/chat:", error);
     res.status(500).json({ reply: "與 AI 客服通訊時發生錯誤。請檢查伺服器日誌。" });
+  }
+});
+
+// API endpoint for saving the message from the modal
+app.post('/api/save-message', async (req, res) => {
+  try {
+    const { name, phone, message } = req.body;
+    const timestamp = new Date().toISOString();
+
+    // Format the log entry
+    let logEntry = `[${timestamp}]\n`;
+    logEntry += `  Name: ${name || 'N/A'}\n`;
+    logEntry += `  Phone: ${phone || 'N/A'}\n`;
+    logEntry += `  Message: "${message}"\n--------------------\n`;
+
+    await fs.promises.appendFile('customer_messages.log', logEntry);
+
+    console.log('Saved message from modal to customer_messages.log');
+    res.json({ success: true, reply: '您的留言已成功送出，感謝您！' });
+  } catch (error) {
+    console.error("Error in /api/save-message:", error);
+    res.status(500).json({ success: false, reply: '儲存留言時發生錯誤，請稍後再試。' });
   }
 });
 
