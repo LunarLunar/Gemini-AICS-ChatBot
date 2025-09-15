@@ -10,3 +10,6 @@ DEV_LOG.md
 # Ignore application logs
 *.log
 ErrorLog.txt
+
+# Ignore sensitive notes and API keys
+DEV_GeminAICS 筆記.txt

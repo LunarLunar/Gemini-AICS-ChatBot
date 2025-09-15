@@ -2,87 +2,202 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>GeminAICS Interface</title>
+<title>GeminAICS Interface v2.0</title>
 <style>
-  body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; margin: 0; }
-  #chatContainer { display: flex; flex-direction: column; height: calc(100vh - 40px); max-width: 700px; margin: auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-  #chatBox { flex-grow: 1; padding: 15px; overflow-y: auto; }
-  .message { padding: 8px 12px; margin: 8px 0; border-radius: 8px; max-width: 80%; line-break: anywhere; white-space: pre-wrap; }
-  .user { background: #d1e7ff; text-align: left; align-self: flex-end; margin-left: 20%; }
-  .bot { background: #e2ffe2; text-align: left; align-self: flex-start; margin-right: 20%; }
-  #inputContainer { display: flex; padding: 15px; border-top: 1px solid #ddd; }
-  #inputBox { flex-grow: 1; padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
-  #sendBtn { width: 70px; padding: 8px; margin-left: 10px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer; }
-  #sendBtn:hover { background-color: #0056b3; }
+  /* --- Tech Noir Theme --- */
+  :root {
+    --background-color: #1a1a1a;
+    --container-bg: #2a2a2a;
+    --input-bg: #333333;
+    --text-color: #e0e0e0;
+    --primary-glow: #00aaff;
+    --secondary-glow: #00ffff;
+    --user-msg-bg: #003366;
+    --bot-msg-bg: #1f2b38;
+    --border-color: #005588;
+  }
 
-/* Modal styles */
-.modal {
-  display: none; /* Hidden by default */
-  position: fixed; /* Stay in place */
-  z-index: 100; /* Sit on top */
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto; /* Enable scroll if needed */
-  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-}
+  * {
+    box-sizing: border-box;
+  }
 
-.modal-content {
-  background-color: #fefefe;
-  margin: 15% auto; /* 15% from the top and centered */
-  padding: 20px;
-  border: 1px solid #888;
-  width: 80%;
-  max-width: 500px;
-  border-radius: 8px;
-  position: relative;
-}
+  body { 
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    padding: 20px; 
+    background: var(--background-color); 
+    color: var(--text-color);
+    margin: 0; 
+  }
 
-.close-button {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-}
+  #chatContainer { 
+    display: flex; 
+    flex-direction: column; 
+    height: calc(100vh - 40px); 
+    max-width: 700px; 
+    margin: auto; 
+    background: var(--container-bg); 
+    border-radius: 10px; 
+    box-shadow: 0 0 20px rgba(0, 170, 255, 0.2);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+  }
 
-.close-button:hover,
-.close-button:focus {
-  color: black;
-  text-decoration: none;
-  cursor: pointer;
-}
+  #chatBox { 
+    flex-grow: 1; 
+    padding: 15px; 
+    overflow-y: auto; 
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-glow) var(--background-color);
+  }
 
-#messageForm {
-  display: flex;
-  flex-direction: column;
-}
+  #chatBox::-webkit-scrollbar {
+    width: 8px;
+  }
+  #chatBox::-webkit-scrollbar-track {
+    background: var(--container-bg);
+  }
+  #chatBox::-webkit-scrollbar-thumb {
+    background-color: var(--primary-glow);
+    border-radius: 4px;
+  }
 
-#messageForm label {
-  margin-top: 10px;
-  margin-bottom: 5px;
-}
+  .message { 
+    padding: 10px 15px; 
+    margin: 8px 0; 
+    border-radius: 8px; 
+    max-width: 85%; 
+    line-break: anywhere; 
+    white-space: pre-wrap; 
+    position: relative;
+  }
 
-#messageForm input,
-#messageForm textarea {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
+  .user { 
+    background: var(--user-msg-bg); 
+    align-self: flex-end; 
+    margin-left: 15%;
+    border-left: 3px solid var(--primary-glow);
+  }
 
-#messageForm button {
-  margin-top: 20px;
-  padding: 10px 15px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
+  .bot { 
+    background: var(--bot-msg-bg); 
+    align-self: flex-start; 
+    margin-right: 15%;
+    border-left: 3px solid var(--secondary-glow);
+  }
 
-#messageForm button:hover {
-  background-color: #0056b3;
-}
+  #inputContainer { 
+    display: flex; 
+    padding: 15px; 
+    border-top: 1px solid var(--border-color); 
+    background-color: var(--container-bg);
+  }
+
+  #inputBox { 
+    flex-grow: 1; 
+    padding: 10px; 
+    border: 1px solid var(--primary-glow);
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    border-radius: 5px; 
+    font-size: 16px;
+  }
+  #inputBox:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
+  }
+
+  #sendBtn { 
+    width: 70px; 
+    padding: 10px; 
+    margin-left: 10px; 
+    border: none; 
+    background-color: var(--primary-glow); 
+    color: white; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    transition: all 0.3s ease;
+  }
+
+  #sendBtn:hover { 
+    background-color: var(--secondary-glow);
+    box-shadow: 0 0 15px var(--secondary-glow);
+    color: #1a1a1a;
+  }
+
+  /* Modal styles */
+  .modal {
+    display: none; 
+    position: fixed; 
+    z-index: 100; 
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.7);
+  }
+
+  .modal-content {
+    background-color: var(--container-bg);
+    color: var(--text-color);
+    margin: 15% auto; 
+    padding: 20px;
+    border: 1px solid var(--primary-glow);
+    width: 80%;
+    max-width: 500px;
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 0 25px rgba(0, 170, 255, 0.3);
+  }
+
+  .close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .close-button:hover,
+  .close-button:focus {
+    color: var(--secondary-glow);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  #messageForm {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #messageForm label {
+    margin-top: 10px;
+    margin-bottom: 5px;
+  }
+
+  #messageForm input,
+  #messageForm textarea {
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+  }
+
+  #messageForm button {
+    margin-top: 20px;
+    padding: 10px 15px;
+    background-color: var(--primary-glow);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  #messageForm button:hover {
+    background-color: var(--secondary-glow);
+    box-shadow: 0 0 15px var(--secondary-glow);
+  }
 </style>
 </head>
 <body>
@@ -190,7 +305,6 @@ function sendMessage() {
         thinkingMessage.remove();
     }
 
-    // *** NEW LOGIC: Check for action from backend ***
     if (data.action === 'show_modal') {
       if(data.reply) addMessage(data.reply, "bot");
       openModal();
@@ -232,7 +346,7 @@ messageForm.addEventListener("submit", handleFormSubmit);
 
 // 歡迎訊息
 window.onload = () => {
-    addMessage("GeminAICS 介面已載入。請下達您的指令。", "bot");
+    addMessage("您好小凱再次為您服務", "bot");
 };
 
 </script>
